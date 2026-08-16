@@ -5,3 +5,4 @@ __pycache__/
 *.json
 !vercel.json
 !package.json
+.env*
