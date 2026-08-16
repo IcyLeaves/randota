@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RANDOTA</title>
+  <style>
+    :root {
+      --bg: #0b0d12;
+      --panel: #141821;
+      --panel-2: #1b2130;
+      --line: #2a3142;
+      --text: #ece8e1;
+      --muted: #8d93a3;
+      --red: #c23c2a;
+      --red-2: #e85d3a;
+      --gold: #d4a44c;
+      --green: #3d9b6e;
+      --ban: #6a2a2a;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background:
+        radial-gradient(1200px 500px at 50% -10%, #3a1a16 0%, transparent 55%),
+        var(--bg);
+      color: var(--text);
+    }
+    .wrap {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 24px 16px 48px;
+    }
+    header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+    }
+    .sub { color: var(--muted); font-size: 12px; }
+    .layout {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 860px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+    .card {
+      background: linear-gradient(180deg, var(--panel) 0%, #10141c 100%);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .group { margin-bottom: 14px; }
+    .label {
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip {
+      border: 1px solid var(--line);
+      background: var(--panel-2);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 13px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .chip:hover { border-color: var(--gold); }
+    .chip.on {
+      background: #2a2114;
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+    input[type="search"] {
+      width: 100%;
+      background: #0e121a;
+      border: 1px solid var(--line);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 14px;
+    }
+    .actions { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+    button.primary, button.ghost {
+      border: 0;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 14px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    button.primary {
+      flex: 1;
+      background: linear-gradient(180deg, var(--red-2), var(--red));
+      color: #fff;
+    }
+    button.primary:disabled { opacity: 0.45; cursor: not-allowed; }
+    button.ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--line);
+    }
+    .stage {
+      min-height: 280px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 10px;
+    }
+    .portrait {
+      width: min(100%, 420px);
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+      object-position: center top;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: #0a0c10;
+      box-shadow: 0 12px 40px rgba(0,0,0,.35);
+    }
+    .hero-name { font-size: 28px; font-weight: 800; margin: 0; }
+    .hero-en { color: var(--muted); margin: 0; }
+    .meta { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+    .tag {
+      font-size: 12px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+    }
+    .tag.pos { color: var(--gold); border-color: #5a4620; }
+    .hint { color: var(--muted); font-size: 14px; }
+    .pool-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 14px 0 8px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
+      gap: 6px;
+    }
+    .hero-cell {
+      position: relative;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      overflow: hidden;
+      cursor: pointer;
+      background: #0a0c10;
+      aspect-ratio: 1;
+    }
+    .hero-cell img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .hero-cell.banned {
+      outline: 2px solid var(--red);
+      opacity: 0.35;
+    }
+    .hero-cell.banned::after {
+      content: "禁";
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      background: rgba(80, 10, 10, .45);
+    }
+    .hero-cell.active {
+      outline: 2px solid var(--gold);
+    }
+    .toast {
+      color: var(--green);
+      font-size: 12px;
+      min-height: 16px;
+    }
+    footer {
+      margin-top: 20px;
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>RANDOTA</h1>
+      <div class="sub">近 7 天分路数据 · 共 <span id="totalCount">0</span> 名英雄</div>
+    </header>
+
+    <div class="layout">
+      <aside class="card">
+        <div class="group">
+          <div class="label">位置</div>
+          <div class="chips" id="posChips"></div>
+        </div>
+        <div class="group">
+          <div class="label">属性</div>
+          <div class="chips" id="attrChips"></div>
+        </div>
+        <div class="group">
+          <div class="label">攻击</div>
+          <div class="chips" id="atkChips"></div>
+        </div>
+        <div class="group">
+          <div class="label">复杂度</div>
+          <div class="chips" id="cxChips"></div>
+        </div>
+        <div class="group">
+          <div class="label">搜索</div>
+          <input id="search" type="search" placeholder="中文 / 英文名" />
+        </div>
+        <div class="actions">
+          <button class="primary" id="rollBtn">随机抽取</button>
+          <button class="ghost" id="rerollBtn">再随一次</button>
+          <button class="ghost" id="resetBtn">重置</button>
+        </div>
+        <div class="toast" id="toast"></div>
+      </aside>
+
+      <section class="card">
+        <div class="stage" id="stage">
+          <p class="hint">选择筛选条件后点击「随机抽取」</p>
+        </div>
+        <div class="pool-head">
+          <span>候选池 <b id="poolCount">0</b> · 点击头像可排除</span>
+          <span>已排除 <b id="banCount">0</b></span>
+        </div>
+        <div class="grid" id="grid"></div>
+      </section>
+    </div>
+    <footer>
+      分路依据 Spectral 近 7 天位置统计（pos1–pos5），非技能 <code>slot</code>。
+      Spectral 中 <code>slot</code> 表示技能栏位（Q=1、W=2、E=3、R=6 等），与一号位到五号位无关。
+    </footer>
+  </div>
+
+  <script src="heroes-data.js"></script>
+  <script>
+    const POS_LABELS = {
+      1: "1 优势路",
+      2: "2 中单",
+      3: "3 劣势路",
+      4: "4 辅助",
+      5: "5 纯辅",
+    };
+    const ATTRS = [
+      { id: "str", label: "力量" },
+      { id: "agi", label: "敏捷" },
+      { id: "int", label: "智力" },
+      { id: "all", label: "全才" },
+    ];
+
+    const state = {
+      positions: new Set(),
+      attrs: new Set(),
+      attacks: new Set(),
+      complexity: new Set(),
+      search: "",
+      banned: new Set(),
+      current: null,
+      rolling: false,
+    };
+
+    const $ = (id) => document.getElementById(id);
+
+    function makeChips(el, items, key) {
+      el.innerHTML = "";
+      items.forEach((item) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "chip";
+        btn.textContent = item.label;
+        btn.onclick = () => {
+          const set = state[key];
+          if (set.has(item.id)) set.delete(item.id);
+          else set.add(item.id);
+          btn.classList.toggle("on", set.has(item.id));
+          renderPool();
+        };
+        el.appendChild(btn);
+      });
+    }
+
+    function eligible() {
+      const q = state.search.trim().toLowerCase();
+      return HEROES.filter((h) => {
+        if (state.banned.has(h.id)) return false;
+        if (state.positions.size && ![...state.positions].some((p) => h.positions.includes(p))) return false;
+        if (state.attrs.size && !state.attrs.has(h.attr)) return false;
+        if (state.attacks.size && !state.attacks.has(h.attack)) return false;
+        if (state.complexity.size && !state.complexity.has(h.complexity)) return false;
+        if (q && !h.name.toLowerCase().includes(q) && !h.nameEn.toLowerCase().includes(q)) return false;
+        return true;
+      });
+    }
+
+    function showHero(hero, rolling = false) {
+      state.current = hero;
+      $("stage").innerHTML = `
+        <img class="portrait" src="${hero.avatar}" alt="${hero.name}" />
+        <h2 class="hero-name">${hero.name}</h2>
+        <p class="hero-en">${hero.nameEn}</p>
+        <div class="meta">
+          ${hero.positions.map((p) => `<span class="tag pos">${POS_LABELS[p]}</span>`).join("")}
+          <span class="tag">${hero.attrCn}</span>
+          <span class="tag">${hero.attack}</span>
+          <span class="tag">复杂度 ${hero.complexity}</span>
+        </div>
+      `;
+      document.querySelectorAll(".hero-cell").forEach((el) => {
+        el.classList.toggle("active", Number(el.dataset.id) === hero.id && !rolling);
+      });
+    }
+
+    function renderPool() {
+      const pool = eligible();
+      $("poolCount").textContent = pool.length;
+      $("banCount").textContent = state.banned.size;
+      $("rollBtn").disabled = pool.length === 0 || state.rolling;
+
+      const shown = HEROES.filter((h) => {
+        const q = state.search.trim().toLowerCase();
+        if (state.positions.size && ![...state.positions].some((p) => h.positions.includes(p))) return false;
+        if (state.attrs.size && !state.attrs.has(h.attr)) return false;
+        if (state.attacks.size && !state.attacks.has(h.attack)) return false;
+        if (state.complexity.size && !state.complexity.has(h.complexity)) return false;
+        if (q && !h.name.toLowerCase().includes(q) && !h.nameEn.toLowerCase().includes(q)) return false;
+        return true;
+      });
+
+      $("grid").innerHTML = shown.map((h) => `
+        <div class="hero-cell ${state.banned.has(h.id) ? "banned" : ""} ${state.current && state.current.id === h.id ? "active" : ""}"
+             data-id="${h.id}" title="${h.name} / ${h.nameEn}">
+          <img src="${h.icon}" alt="${h.name}" loading="lazy" />
+        </div>
+      `).join("");
+
+      $("grid").onclick = (e) => {
+        const cell = e.target.closest(".hero-cell");
+        if (!cell) return;
+        const id = Number(cell.dataset.id);
+        if (state.banned.has(id)) state.banned.delete(id);
+        else state.banned.add(id);
+        renderPool();
+      };
+    }
+
+    function roll() {
+      const pool = eligible();
+      if (!pool.length || state.rolling) return;
+      state.rolling = true;
+      $("rollBtn").disabled = true;
+      $("toast").textContent = "";
+      let i = 0;
+      const ticks = Math.min(18, pool.length * 2);
+      const timer = setInterval(() => {
+        const hero = pool[Math.floor(Math.random() * pool.length)];
+        showHero(hero, true);
+        i += 1;
+        if (i >= ticks) {
+          clearInterval(timer);
+          const picked = pool[Math.floor(Math.random() * pool.length)];
+          showHero(picked, false);
+          state.rolling = false;
+          $("rollBtn").disabled = false;
+          $("toast").textContent = `抽中 ${picked.name}`;
+        }
+      }, 70);
+    }
+
+    makeChips($("posChips"), Object.entries(POS_LABELS).map(([id, label]) => ({ id: Number(id), label })), "positions");
+    makeChips($("attrChips"), ATTRS, "attrs");
+    makeChips($("atkChips"), [{ id: "近战", label: "近战" }, { id: "远程", label: "远程" }], "attacks");
+    makeChips($("cxChips"), [1, 2, 3].map((n) => ({ id: n, label: String(n) })), "complexity");
+
+    $("search").addEventListener("input", (e) => {
+      state.search = e.target.value;
+      renderPool();
+    });
+    $("rollBtn").onclick = roll;
+    $("rerollBtn").onclick = roll;
+    $("resetBtn").onclick = () => {
+      state.positions.clear();
+      state.attrs.clear();
+      state.attacks.clear();
+      state.complexity.clear();
+      state.search = "";
+      state.banned.clear();
+      state.current = null;
+      $("search").value = "";
+      document.querySelectorAll(".chip").forEach((c) => c.classList.remove("on"));
+      $("stage").innerHTML = `<p class="hint">选择筛选条件后点击「随机抽取」</p>`;
+      $("toast").textContent = "";
+      renderPool();
+    };
+
+    document.addEventListener("keydown", (e) => {
+      if (e.code === "Space" && e.target.tagName !== "INPUT") {
+        e.preventDefault();
+        roll();
+      }
+    });
+
+    $("totalCount").textContent = HEROES.length;
+    renderPool();
+  </script>
+</body>
+</html>

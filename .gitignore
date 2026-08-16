@@ -1,0 +1,7 @@
+.vercel
+__pycache__/
+*.pyc
+.DS_Store
+*.json
+!vercel.json
+!package.json
